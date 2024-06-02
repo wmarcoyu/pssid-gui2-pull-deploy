@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  client:
+    image: {{ dockerhub_username }}/pssid-gui2_client:latest
+    volumes:
+      - client_node_modules:/usr/src/app/client/node_modules
+    ports:
+      - 8080:8080
+
+  server:
+    image: {{ dockerhub_username }}/pssid-gui2_server:latest
+    restart: on-failure
+    volumes:
+      - server_node_modules:/usr/src/app/server/node_modules
+      - {{ pssid_gui_root_dir }}/bin:/usr/src/app/bin
+      - {{ pssid_gui_root_dir }}/lib:/usr/src/app/server/lib
+      - {{ pssid_gui_root_dir }}/bin:/usr/src/app/server/bin
+    ports:
+      - 8000:8000
+    depends_on:
+      - mongo
+
+  mongo:
+    image: {{ dockerhub_username }}/pssid-gui2_mongo:latest
+    ports:
+      - 27017:27017
+    volumes:
+      - {{ pssid_gui_root_dir }}/mongo/data:/data/db
+
+volumes:
+  client_node_modules:
+  server_node_modules:

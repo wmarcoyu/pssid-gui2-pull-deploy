@@ -1,0 +1,35 @@
+- hosts: localhost
+  vars:
+    # TODO: change dockerhub_username as appropriate
+    dockerhub_username: "wmarcoyu"
+  tasks:
+    - name: Read config file
+      command: cat pssid_gui.conf
+      register: config_file
+
+    - name: Convert config file content to string
+      set_fact:
+        config_content: "{{ config_file.stdout }}"
+
+    - name: Parse and set output directory from config
+      set_fact:
+        pssid_gui_root_dir: "{{ item.split('=')[1] | trim | regex_replace('^\"|\"$', '') }}"
+      loop: "{{ config_content.split('\n') }}"
+      when: item.startswith('PSSID_GUI_ROOT_DIR')
+
+    - name: Generate docker-compose.yml from template
+      template:
+        src: "{{ playbook_dir }}/docker-compose.yml.j2"
+        dest: "{{ playbook_dir }}/docker-compose.yml"
+
+    - name: Pull Docker images
+      command: docker-compose pull
+      args:
+        chdir: "{{ playbook_dir }}"
+      become: yes
+
+    - name: Run Docker containers
+      command: docker-compose up -d
+      args:
+        chdir: "{{ playbook_dir }}"
+      become: yes
