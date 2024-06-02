@@ -25,7 +25,7 @@ that the GUI generates.
 
 2. Run the script with
 ```
-ansible-playbook playbook.yml --ask-become-pass
+ansible-playbook --inventory inventory --ask-become-pass playbook.yml
 ```
 which should generate a `docker-compose.yml` file out of the template, pull the
 images from Docker Hub, and start the services.
