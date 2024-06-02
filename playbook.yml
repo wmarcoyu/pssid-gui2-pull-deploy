@@ -1,35 +1,70 @@
 - hosts: all
+  become: yes
   vars:
-    # TODO: change dockerhub_username as appropriate
+    # TODO FOR DEVELOPERS: change dockerhub_username as appropriate
     dockerhub_username: "wmarcoyu"
+    # TODO FOR DEVELOPERS: change GitHub repo
+    github_repo: "https://github.com/wmarcoyu/pssid-gui2-pull-deploy/"
+    # TODO FOR USERS: set the installation path on target hosts
+    install_path: "/home/wmarcoyu/pssid-gui2-pull-deploy"
+    # (OPTIONAL) TODO FOR USERS: change application root directory
+    pssid_gui_root_dir: "/usr/local/pssid_gui"
   tasks:
-    - name: Read config file
-      command: cat pssid_gui.conf
-      register: config_file
+    - name: Update the apt package index
+      apt:
+        update_cache: yes
 
-    - name: Convert config file content to string
-      set_fact:
-        config_content: "{{ config_file.stdout }}"
+    - name: Add Docker’s official GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
 
-    - name: Parse and set output directory from config
-      set_fact:
-        pssid_gui_root_dir: "{{ item.split('=')[1] | trim | regex_replace('^\"|\"$', '') }}"
-      loop: "{{ config_content.split('\n') }}"
-      when: item.startswith('PSSID_GUI_ROOT_DIR')
+    - name: Set up the Docker stable repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
+        state: present
+        update_cache: yes
+
+    - name: Install Docker
+      apt:
+        name: docker-ce
+        state: present
+
+    - name: Ensure Docker is started and enabled
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Install Docker Compose
+      apt:
+        name: docker-compose
+        state: present
+
+    - name: Install Ansible
+      apt:
+        name: ansible
+        state: present
+
+    - name: Clone the pull-deploy GitHub repository
+      git:
+        repo: {{ github_repo }}
+        dest: {{ install_path }}
+        clone: yes
+        update: yes
+        force: yes
 
     - name: Generate docker-compose.yml from template
       template:
-        src: "{{ playbook_dir }}/docker-compose.yml.j2"
-        dest: "{{ playbook_dir }}/docker-compose.yml"
+        src: "{{ install_path }}/docker-compose.yml.j2"
+        dest: "{{ install_path }}/docker-compose.yml"
 
     - name: Pull Docker images
       command: docker-compose pull
       args:
-        chdir: "{{ playbook_dir }}"
-      become: yes
+        chdir: "{{ install_path }}"
 
     - name: Run Docker containers
       command: docker-compose up -d
       args:
-        chdir: "{{ playbook_dir }}"
-      become: yes
+        chdir: "{{ install_path }}"
