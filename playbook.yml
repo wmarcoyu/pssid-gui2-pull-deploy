@@ -1,4 +1,4 @@
-- hosts: localhost
+- hosts: all
   vars:
     # TODO: change dockerhub_username as appropriate
     dockerhub_username: "wmarcoyu"
