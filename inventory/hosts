@@ -3,4 +3,4 @@
 # install it on other hosts, include their hostnames/IP addresses in this file.
 
 [default]
-localhost
+localhost ansible_connection=local
