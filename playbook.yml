@@ -3,8 +3,6 @@
   vars:
     # TODO FOR DEVELOPERS: change dockerhub_username as appropriate
     dockerhub_username: "wmarcoyu"
-    # TODO FOR DEVELOPERS: change GitHub repo
-    github_repo: "https://github.com/wmarcoyu/pssid-gui2-pull-deploy/"
     # TODO FOR USERS: set the installation path on target hosts
     install_path: "/home/wmarcoyu/pssid-gui2-pull-deploy"
     # (OPTIONAL) TODO FOR USERS: change application root directory
@@ -46,13 +44,16 @@
         name: ansible
         state: present
 
-    - name: Clone the pull-deploy GitHub repository
-      git:
-        repo: {{ github_repo }}
-        dest: {{ install_path }}
-        clone: yes
-        update: yes
-        force: yes
+    - name: Create the install directory
+      file:
+        path: "{{ install_path }}"
+        state: directory
+
+    - name: Rsync docker-compose.yml.j2 to the install directory
+      synchronize:
+        src: "{{ playbook_dir }}/docker-compose.yml.j2"
+        dest: "{{ install_path }}/docker-compose.yml.j2"
+        recursive: no
 
     - name: Generate docker-compose.yml from template
       template:
