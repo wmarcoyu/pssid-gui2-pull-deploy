@@ -12,6 +12,9 @@ sudo apt-get update && sudo apt-get install ansible
 !!! **FOR DEVELOPERS**: change `dockerhub_username` in `playbook.yml` to 
 an "official" Docker Hub user.
 
+!!! **FOR DEVELOPERS**: change `github_repo` in `playbook.yml` to 
+an "official" GitHub location.
+
 1. Open `playbook.yml` with a text editor.
 
 Set the `install_path` entry, which is a directory that contains only 1 file,
